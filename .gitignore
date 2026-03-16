@@ -47,3 +47,20 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# Output directories
+Images/
+Robustness/
+
+# Compiled C++ objects
+*.so
+*.dll
+*.o
+Source/*.so
+Source/*.dll
+Source/*.o
+
+# Large intermediate RDS outputs
+Data/optpol_bastrans*.RDS
+Data/optpol_bastransDS*.RDS
+Data/optpol_bastransDShigh*.RDS
