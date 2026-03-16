@@ -2,9 +2,9 @@
 
 Replication code for the paper **"Chronicle of a Debt Foretold"**.
 
-This repository contains the model, analysis pipeline, and robustness analysis for a
-Stock-Flow Consistent (SFC) macro-financial model of the Colombian economy, used to
-assess debt-for-nature swap mechanisms and their macroeconomic implications.
+This repository contains the model, analysis pipeline, and robustness analysis for GEMMES Colombia,
+Stock-Flow Consistent (SFC) macro-financial model of the Colombian economy, used to assess green 
+debt levers and their macroeconomic implications.
 
 ---
 
