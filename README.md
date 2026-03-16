@@ -152,7 +152,7 @@ compilation step is required beyond having a working C++ toolchain (Rtools on Wi
 | DR2 — LCY Bonds | Green financing via local-currency bonds (original sin reduction) |
 | DR3 — Interest Rate Renegotiation | Reduction of interest rate on existing foreign debt |
 | DR4 — Principal Adjustment | Partial principal cancellation on existing foreign debt |
-| FR — Fiscal Rule | Fiscal consolidation rule (Maastricht-type) |
+| FR — Fiscal Rule | Fiscal consolidation rule |
 
 ---
 
