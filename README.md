@@ -158,4 +158,5 @@ compilation step is required beyond having a working C++ toolchain (Rtools on Wi
 
 ## Authors
 
-Morgane Gonon, Antoine Godin, Louis Daumas, Jhan Rodríguez
+Morgane Gonon, Antoine Godin, Louis Daumas
+
