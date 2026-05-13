@@ -64,3 +64,6 @@ Source/*.o
 Data/optpol_bastrans*.RDS
 Data/optpol_bastransDS*.RDS
 Data/optpol_bastransDShigh*.RDS
+
+#Open MORDM
+OpenMORDM/*

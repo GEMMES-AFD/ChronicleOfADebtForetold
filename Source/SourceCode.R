@@ -84,7 +84,7 @@ cppMakeMinDist <- function(fileName=NULL, tderiv=NULL, parms=NULL, times=NULL, y
   }
   
   #Load Raw Cpp Code, add dim and options definitions and save
-  cppCode <- readChar("RawCppCodeMinDist.cpp", file.info("RawCppCodeMinDist.cpp")$size)
+  cppCode <- readChar("Source/RawCppCodeMinDist.cpp", file.info("Source/RawCppCodeMinDist.cpp")$size)
   cppCode <- sub("@AddDim", as.character(sys$dim), cppCode)
   cppCode <- sub("@AddDimIv", as.character(length(sys$intermediateVar)), cppCode)
   cppCode <- sub("@AddDimOut", ifelse(sys$reportVars==3,
@@ -659,7 +659,7 @@ cppCompileRK4 <- function(sys=NULL, dim=sys$dim, strFunc=sys$strFunc, eventTime=
 	}
 	
 	#Load Raw Cpp Code, add dim and options definitions and save
-	cppCode <- readChar("RawCppCodeRK4.cpp", file.info("RawCppCodeRK4.cpp")$size)
+	cppCode <- readChar("Source/RawCppCodeRK4.cpp", file.info("Source/RawCppCodeRK4.cpp")$size)
 	cppCode <- sub("@AddDim", as.character(sys$dim), cppCode)
 	cppCode <- sub("@AddDimIv", as.character(length(sys$intermediateVar)), cppCode)
 	cppCode <- sub("@AddDimOut", ifelse(sys$reportVars==3,
@@ -933,7 +933,7 @@ cppCompileSS <- function(sys=NULL, dim=sys$dim, strFunc=sys$strFunc, parms=sys$p
 	sys$strFunc <- gsub("float", "double", sys$strFunc)
 
 	#Load Raw Cpp Code, add dim and options definitions and save
-	cppCode <- readChar("RawCppCodeSS.cpp", file.info("RawCppCodeSS.cpp")$size)
+	cppCode <- readChar("Source/RawCppCodeSS.cpp", file.info("Source/RawCppCodeSS.cpp")$size)
 	cppCode <- sub("@AddDim", as.character(sys$dim), cppCode)
 	cppCode <- sub("@AddDimIv", as.character(length(sys$intermediateVar)), cppCode)
 	cppCode <- sub("@AddSys", sys$strFunc, cppCode)
