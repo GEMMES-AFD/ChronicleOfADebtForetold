@@ -14,7 +14,7 @@ source("Source/utilities.R")
 event1 <- list(triggerDate=4, reducXrO="0.025")
 #,reducXbiO="0")
 
-SOEM1 <- cppMakeSys(fileName = "model_equations_DebtSwap.R",reportVars=3, eventTime=list(event1))
+SOEM1 <- cppMakeSys(fileName = "model_equations_MORDM.R",reportVars=3, eventTime=list(event1))
 
 #Baseline
 

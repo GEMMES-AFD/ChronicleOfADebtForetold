@@ -1,4 +1,29 @@
-#Intermediate Variables--------------------------------------------------------------------------------------------------------------------------------------------------  
+# =============================================================================
+# Chronicle of a Debt Foretold — Unified model equations (GEMMES Colombia, SFC)
+# =============================================================================
+# This file replaces the former pair model_equations_DebtSwap.R /
+# model_equations_MORDM.R. The structural base is the MORDM variant (endogenous
+# labour force LFo, recalibrated parameter values, FX-budget market reactions).
+# Three optional mechanisms are appended and gated by SWITCHES so the same file
+# can be sourced for every scenario in the pipeline.
+#
+# SWITCHES (set at the end of the file, default = 0)
+#   dsactive   Debt Swap operation (composes debtSwapFX* stocks; gates the
+#              market-reaction term jointly with `reaction`).
+#   reaction   FX market reaction on premfx, ratFFX, ratBFX. Active only when
+#              both `reaction` and `dsactive` are = 1 (symmetric coupling).
+#   FRactive   Fiscal Rule on government investment. Active = 1 introduces
+#              kappagFR (rebate of kappag against fiscal deficit overshoot).
+#
+# Companion sub-switches/parameters
+#   decds, mdds                                 Debt-swap composition
+#   kappagmin, alphafr, gammafr, fdr, dfr       Fiscal Rule calibration
+#   rho, zetafx3, gammariskFFX, gammariskBFX    Market-reaction calibration
+#
+# Equations affected by each switch are flagged inline with [SWITCH: <name>].
+# =============================================================================
+
+#Intermediate Variables--------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##intermediate variables
 
@@ -144,7 +169,7 @@ premfTar = zeta0 + zeta1/(1 + exp(-zeta2*((Ldf + Lfxfb*en + Lfxfw*en)/p*ypd)))  
 ilh = ildf*(1 + premh)                                      #Interest rate on household loans (*Nominal*, *%*) 
 premhTar = chi0 + chi1/(1 + exp(-chi2*(Ldh/YDh)))           #Risk premium on household loans (*Nominal*, *%*) 
 
-premfx = zetafx0 + zetafx1*(rsk)^zetafx2                    #Premium on FX loans with the Rest of the World (*Nominal*, *%*) 
+premfx = (zetafx0 + zetafx1*(rsk)^zetafx2)*(1 + reaction*dsactive*zetafx3*(t>=4)*exp(-sqrt(rho)*(t - 0.5*(4 + 2/rho))^2))    #Premium on FX loans with RoW [SWITCH: reaction*dsactive] (*Nominal*, *%*)
 
 ilfxbw = iwst + premfx                                      #Interest rate on FX loans of FCs with the Rest of the World  (*Nominal*, *%*) 
 ilfxb = ilfxbw*(1 + rhofx2*premf)                           #Interest rate on FX loans of NFCs with FCs (*Nominal*, *%*) 
@@ -223,13 +248,17 @@ Lg = etag*pop                                                       #Total emplo
 icg = lambdaicg*Lg  #lambdaicg*Lg                                                  #Government intermediate consumption demand (*Real*, *Flow*)
 lambdaicg = ((1/(1 + exp(lambdaicg1*t-lambdaicg2)))*(lambdaicg3 - lambdaicg3*lambdaicg4) +  lambdaicg3*lambdaicg4)
 
-ikgTar = kappag*krg                                                 #Target Government investment demand (*Real*, *Flow*)
+# Fiscal Rule [SWITCH: FRactive] — penalises kappag when fiscal deficit overshoots fdr and public debt overshoots dfr
+kappagFR = max(kappagmin, kappag - alphafr*sigmaFR*(FD - FDFR)/(krg*pk) * FRactive)                                                                       #Effective government investment rate under Fiscal Rule
+sigmaFR  = 1/(1 + exp(-gammafr*((Bg + (Bgfx + debtSwapFXBgFX*(1-decds))*en + (Lgfx + debtSwapFXLgFX*(1-decds))*en + (Lgfxtr + debtSwapFXLgFXtr*(1-decds))*en + Bgtr)/GDP) - dfr))    #Logistic activation of the Fiscal Rule on public debt
+ikgTar = kappagFR*krg                                               #Target Government investment demand under Fiscal Rule (*Real*, *Flow*)
 IkgTar = ikgTar*pk+scenInv*GDP                                      #Target Government investment demand (*Nominal*, *Flow*)
 
 ST = (fi3*Wf*(LFo - Lg - Lf - Lb) + fi4 * Wf*pop)                  #Notional Social transfers paid to Households (*Nominal*, *Flow*)
 STg = fistg*ST*(1-maxSTg*tanh(speedSTg*(triggerSTg-reserves)))                                                      #Social transfers effectively paid by the Government (*Nominal*, *Flow*)
 
-FD = Gt - TR - PSg                                                  #Fiscal deficit of the Government (*Nominal*, *Flow*)
+FD   = Gt - TR - PSg                                                #Fiscal deficit of the Government (*Nominal*, *Flow*)
+FDFR = fdr*GDP                                                      #Fiscal-deficit reference for the Fiscal Rule [SWITCH: FRactive]
 
 TFNG = FD + Dgdot + Dcbgdot + Dfxgdot*en                            #Total financing needs of the Government (*Nominal*, *Flow*)
 
@@ -340,7 +369,7 @@ Lfxfbdesdot = etalfxfb*(TFNF/en)                                                
 Lfxfbdot = (1 - ratBFX)*Lfxfbdesdot                                              #NFCs' FX loans with FCs (*Nominal*, *Flow*)
 
 Lfxfwdot = (1 - ratFFX)*etalfxfw*(TFNF/en)                                       #NFCs'FX loans with the Rest of the World (*Nominal*, *Flow*)
-ratFFX = 1/(1.0 + exp(-betariskFFX*(rsk - MPFFX)))*(UBFFX - LBFFX) + LBFFX       #Credit rationing on NFCs' desired FX loans demand with the Rest of the World (*Nominal*, *%*)
+ratFFX = 1/(1.0 + exp(-betariskFFX*(rsk - MPFFX)))*(UBFFX*(1 + reaction*dsactive*gammariskFFX*(t>4)*exp(rho*(4-t))) - LBFFX) + LBFFX       #Credit rationing on NFCs' FX loans with RoW [SWITCH: reaction*dsactive] (*Nominal*, *%*)
 
 Ldfdot = TFNF - Lfxfbdot*en - Lfxfwdot*en - FDInonGreen            #NFCs' domestic currency loans (*Nominal*, *Flow*) 
 
@@ -360,7 +389,7 @@ Dfxbdot = betadfxb*(etadbfx*Lfxbw - Dfxb)                    #Adjustment of FX F
 
 Lfxbwdesdot = (etalxfbw*OFbdot/en + Lfxfbdesdot)                                 #FCs' desired FX loans demand with the Rest of the World (*Nominal*, *Flow*)
 Lfxbwdot = (1 - ratBFX)*Lfxbwdesdot                                              #FCs'FX loans with the Rest of the World (*Nominal*, *Flow*)
-ratBFX = 1/(1.0 + exp(-betariskBFX*(rsk - MPBFX)))*(UBBFX - LBBFX) + LBBFX       #Credit rationing on FCs' desired FX loans demand with the Rest of the World (*Nominal*, *%*)
+ratBFX = 1/(1.0 + exp(-betariskBFX*(rsk - MPBFX)))*(UBBFX*(1 + reaction*dsactive*gammariskBFX*(t>4)*exp(rho*(4-t))) - LBBFX) + LBBFX       #Credit rationing on FCs' FX loans with RoW [SWITCH: reaction*dsactive] (*Nominal*, *%*)
 
 Bgbdot = Bgdot - Bgwdot                                      #FCs' purchase of domestic public bonds (*Nominal*, *Flow*)
 Bgbtrdot = (1-shrGrBw)*Bgtrdot                                #Domestic Green bonds purchased by FCs
@@ -864,6 +893,14 @@ lambdaicg4 = 1.5
 
 
 kappag=0.07                        #Government investment rate
+
+# Fiscal Rule parameters [SWITCH: FRactive]
+kappagmin = 0.01                   #Minimum government investment rate (Fiscal Rule floor)
+alphafr   = 0.5                    #Investment sensitivity to fiscal rule (to be estimated)
+gammafr   = 100                    #Sensitivity to debt condition for the fiscal rule
+fdr       = 0.03                   #Threshold for fiscal deficit – fiscal rule (% GDP)
+dfr       = 0.6                    #Threshold for public debt – fiscal rule (% GDP)
+
 deltag=0.035                       #Depreciation rate of the Government's capital stock
 betaIkg=1                          #Speed of convergence of Government investment
 
@@ -994,12 +1031,26 @@ scenInv=0                               #Government investment as a share of GDP
 
 
 #Debt Swap Parameters
-mdds=0
-decds=0
+mdds=0                              #Maturity / discount on swapped debt (debt-swap composition)
+decds=0                             #Debt cancellation share (debt-swap composition)
 betadebtSwapFXLgFX=4
 betadebtSwapFXBgFX=4
 betadebtSwapFXLgFXtr=4
-dsactive=0
+
+#Market Reaction parameters [SWITCH: reaction*dsactive]
+rho           = 0.1                 #Decay rate of market-reaction intensity
+zetafx3       = 0.15                #Proportional increase in premfx due to market reaction
+gammariskFFX  = 0.2                 #Proportional increase in UBFFX due to market reaction
+gammariskBFX  = 0.2                 #Proportional increase in UBBFX due to market reaction
+
+# =============================================================================
+# SWITCHES — set to 1 to activate the corresponding mechanism
+# =============================================================================
+dsactive = 0                        #Debt Swap operation
+reaction = 0                        #FX market reaction on premfx, ratFFX, ratBFX  (effective only if dsactive = 1)
+FRactive = 0                        #Fiscal Rule on government investment
+# =============================================================================
+
 #Time---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##time

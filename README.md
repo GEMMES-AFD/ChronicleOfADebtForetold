@@ -32,8 +32,8 @@ unemployment, current account, government interest payments.
 
 ```
 .
-├── model_equations_DebtSwap.R        # SFC model equations — baseline + DR scenarios
-├── model_equations_MORDM.R           # SFC model equations — variant for MORDM optimization
+├── model_equations_MORDM.R           # Unified SFC model equations — baseline, DR scenarios,
+│                                     # Fiscal Rule and MORDM optimization (switches inside)
 │
 ├── 01_run_scenarios.R                # Run baseline + DR1–DR4 + fiscal rule; produce figures
 ├── 02_sensitivity_baseline.R         # LHS + OT sensitivity analysis on baseline parameters
@@ -75,7 +75,7 @@ can be run in parallel (they operate on independent baseline sets).
 
 ```
 01_run_scenarios.R
-    └─ sources: model_equations_DebtSwap.R
+    └─ sources: model_equations_MORDM.R
     └─ outputs: Images/clean_plot_res*.png
 
 02_sensitivity_baseline.R
