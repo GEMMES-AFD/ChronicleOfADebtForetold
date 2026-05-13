@@ -3,6 +3,13 @@ new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"
 if(length(new.packages)) install.packages(new.packages)
 library(list.of.packages,character.only = T)
 
+# Resolve the directory of this file at source() time so C++ template paths
+# are correct regardless of the caller's working directory.
+.SOURCECODE_DIR <- local({
+  srcfile <- tryCatch(normalizePath(sys.frame(1)$ofile), error = function(e) NULL)
+  if (!is.null(srcfile)) dirname(srcfile) else file.path(getwd(), "Source")
+})
+
 #############################################################
 ## Create the Cpp function from tderiv and intermediateVar ##
 ## And compile (if compile==TRUE) the cpp code for RK4     ##
@@ -84,7 +91,8 @@ cppMakeMinDist <- function(fileName=NULL, tderiv=NULL, parms=NULL, times=NULL, y
   }
   
   #Load Raw Cpp Code, add dim and options definitions and save
-  cppCode <- readChar("RawCppCodeMinDist.cpp", file.info("RawCppCodeMinDist.cpp")$size)
+  rawPath <- file.path(.SOURCECODE_DIR, "RawCppCodeMinDist.cpp")
+  cppCode <- readChar(rawPath, file.info(rawPath)$size)
   cppCode <- sub("@AddDim", as.character(sys$dim), cppCode)
   cppCode <- sub("@AddDimIv", as.character(length(sys$intermediateVar)), cppCode)
   cppCode <- sub("@AddDimOut", ifelse(sys$reportVars==3,
@@ -109,10 +117,10 @@ cppMakeMinDist <- function(fileName=NULL, tderiv=NULL, parms=NULL, times=NULL, y
   cppCode <- gsub("makeThisAnSTDAndDoubleColon", "std::", cppCode)
   cppCode <- gsub("thisIsAnInt", "", cppCode)
   
-  writeChar(object=cppCode, "CppCodeMinDist.cpp", nchars=nchar(cppCode), eos=NULL)
+  writeChar(object=cppCode, file.path(.SOURCECODE_DIR, "CppCodeMinDist.cpp"), nchars=nchar(cppCode), eos=NULL)
   
   # Sys.setenv(PKG_LIBS = "-lOpenCL")
-  sourceCpp("CppCodeMinDist.cpp")
+  sourceCpp(file.path(.SOURCECODE_DIR, "CppCodeMinDist.cpp"))
   options(scipen=initScipen)
   sys
 }
@@ -659,7 +667,8 @@ cppCompileRK4 <- function(sys=NULL, dim=sys$dim, strFunc=sys$strFunc, eventTime=
 	}
 	
 	#Load Raw Cpp Code, add dim and options definitions and save
-	cppCode <- readChar("RawCppCodeRK4.cpp", file.info("RawCppCodeRK4.cpp")$size)
+	rawPath <- file.path(.SOURCECODE_DIR, "RawCppCodeRK4.cpp")
+	cppCode <- readChar(rawPath, file.info(rawPath)$size)
 	cppCode <- sub("@AddDim", as.character(sys$dim), cppCode)
 	cppCode <- sub("@AddDimIv", as.character(length(sys$intermediateVar)), cppCode)
 	cppCode <- sub("@AddDimOut", ifelse(sys$reportVars==3,
@@ -684,10 +693,10 @@ cppCompileRK4 <- function(sys=NULL, dim=sys$dim, strFunc=sys$strFunc, eventTime=
 	cppCode <- gsub(", MakeThisAndCommaAColon,", " : ", cppCode)
 	cppCode <- gsub("makeThisAnSTDAndDoubleColon", "std::", cppCode)
 	
-	writeChar(object=cppCode, "CppCodeRK4.cpp", nchars=nchar(cppCode), eos=NULL)
+	writeChar(object=cppCode, file.path(.SOURCECODE_DIR, "CppCodeRK4.cpp"), nchars=nchar(cppCode), eos=NULL)
 	
 	# Sys.setenv(PKG_LIBS = "-lOpenCL")
-	sourceCpp("CppCodeRK4.cpp")
+	sourceCpp(file.path(.SOURCECODE_DIR, "CppCodeRK4.cpp"))
 	options(scipen=initScipen)
 }
 
@@ -933,7 +942,8 @@ cppCompileSS <- function(sys=NULL, dim=sys$dim, strFunc=sys$strFunc, parms=sys$p
 	sys$strFunc <- gsub("float", "double", sys$strFunc)
 
 	#Load Raw Cpp Code, add dim and options definitions and save
-	cppCode <- readChar("RawCppCodeSS.cpp", file.info("RawCppCodeSS.cpp")$size)
+	rawPath <- file.path(.SOURCECODE_DIR, "RawCppCodeSS.cpp")
+	cppCode <- readChar(rawPath, file.info(rawPath)$size)
 	cppCode <- sub("@AddDim", as.character(sys$dim), cppCode)
 	cppCode <- sub("@AddDimIv", as.character(length(sys$intermediateVar)), cppCode)
 	cppCode <- sub("@AddSys", sys$strFunc, cppCode)
@@ -946,10 +956,10 @@ cppCompileSS <- function(sys=NULL, dim=sys$dim, strFunc=sys$strFunc, parms=sys$p
 	cppCode <- gsub(", MakeThisAndCommaAColon,", " : ", cppCode)
 	cppCode <- gsub("makeThisAnSTDAndDoubleColon", "std::", cppCode)
 	
-	writeChar(object=cppCode, "CppCodeSS.cpp", nchars=nchar(cppCode), eos=NULL)
+	writeChar(object=cppCode, file.path(.SOURCECODE_DIR, "CppCodeSS.cpp"), nchars=nchar(cppCode), eos=NULL)
 	
 	# Sys.setenv(PKG_LIBS = "-lOpenCL")
-	sourceCpp("CppCodeSS.cpp")
+	sourceCpp(file.path(.SOURCECODE_DIR, "CppCodeSS.cpp"))
 	options(scipen=initScipen)
 }
 

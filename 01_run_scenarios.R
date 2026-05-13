@@ -12,8 +12,6 @@ source("Source/sourceCodeCalibration.R")
 source("Source/utilities.R")
 
 event1 <- list(triggerDate=4, reducXrO="0.025")
-#,reducXbiO="0")
-
 SOEM1 <- cppMakeSys(fileName = "model_equations_MORDM.R",reportVars=3, eventTime=list(event1))
 
 #Baseline
@@ -99,8 +97,20 @@ diagvars <- c("GipGDP", "en", "premgd", "rsk", "FIP", "perCapita","unem","inflat
               "hhFrag",
               #"ratFFX")
               "GDP")
-diagvar_labs <- c(GipGDP = "Public Interest Payment\n(% GDP) (a)", en="Nominal Exchange \nRate (c)", premgd ="Premium on public Debt\n(Pct) (i)", rsk = "Country Risk (Pct) (k)", FIP = "Foreign International\nPosition\n(% GDP) (d)", perCapita = "GDP per capita (USD) (h)",unem = "Unemployment (l)", inflation = "Inflation (g)", CAD = "Current account deficit (b)", reserves = "Foreign reserves\n(% GDP)(j)", hhFrag = "Households fragility (f)", #ratFFX = "Credit rationing")
-                   GDP ="GDP (e)" )
+diagvar_labs <- c(
+  GipGDP    = "Public Interest Payments\n(% GDP) (a)",
+  CAD       = "Current Account Deficit\n(% GDP, ratio) (b)",
+  en        = "Nominal Exchange Rate\n(COP / USD) (c)",
+  FIP       = "Foreign International Position\n(% GDP) (d)",
+  GDP       = "Nominal GDP (e)",
+  hhFrag    = "Household Fragility\n(ratio) (f)",
+  inflation = "Inflation (rate) (g)",
+  perCapita = "GDP per Capita\n(USD) (h)",
+  premgd    = "Premium on Public Debt\n(pp) (i)",
+  reserves  = "Foreign Reserves\n(% GDP, ratio) (j)",
+  rsk       = "Country Risk\n(pp) (k)",
+  unem      = "Unemployment Rate\n(ratio) (l)"
+)
 
 
 res_df <- res_list %>% list.rbind() %>% mutate(Scenario = as.factor(Scenario)) %>% mutate(ehat = 100*endot/en, 
@@ -134,19 +144,20 @@ ggplot(res_df, aes(x = time, y = Value,
                    color = Scenario, 
                    linetype = Scenario)) + 
   geom_line(linewidth = 0.7) + 
-  facet_wrap(~as.factor(Variable), 
-             scales = "free_y", 
-             labeller = as_labeller(diagvar_labs), 
-             ncol = 3) +   # <- controls number of columns (facets per row)
-  scale_colour_manual(values = c("black", "#2E5F8DFF", "#F8A049FF", "#D82632FF", "#A50021FF","darkgrey")) + 
-  theme_classic() + 
+  facet_wrap(~as.factor(Variable),
+             scales = "free_y",
+             labeller = as_labeller(diagvar_labs),
+             ncol = 3) +
+  scale_y_continuous(labels = scales::label_number(accuracy = NULL, big.mark = ",")) +
+  scale_colour_manual(values = c("black", "#2E5F8DFF", "#F8A049FF", "#D82632FF", "#A50021FF","darkgrey")) +
+  theme_classic() +
   theme(panel.grid.minor = element_blank(),
-        panel.border = element_blank(), 
-        panel.background = element_blank(), 
-        strip.text = element_text(colour = 'black', size = 11), 
-        strip.background = element_blank(), 
-        axis.text = element_text(size = 10), 
-        legend.text = element_text(size = 10), 
+        panel.border = element_blank(),
+        panel.background = element_blank(),
+        strip.text = element_text(colour = 'black', size = 10),
+        strip.background = element_blank(),
+        axis.text = element_text(size = 8),
+        legend.text = element_text(size = 9),
         legend.title = element_blank(),
         legend.box = "vertical",
         legend.spacing.y = unit(1,"cm"),
