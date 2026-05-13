@@ -35,7 +35,7 @@ source("Extrafunctions.R")
 ###Overarching parameters
 reducXro = 0.025
 shapes = 2
-reaction = 0
+reaction = 1
 
 ##Model Files
 MORDM_FILE = "model_equations_MORDM_Unified.R"

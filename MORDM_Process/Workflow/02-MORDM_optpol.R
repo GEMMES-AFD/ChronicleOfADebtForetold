@@ -1,5 +1,10 @@
 ###Generating System
 cat("Generating SOEM...\n")
+if (reaction ==1){
+cat("Market reaction: YES\n")
+} else {
+cat("Market reaction: NO\n")
+}
 event1 <- list(triggerDate=4, reducXrO=reducXro)
 SOEM <- cppMakeSys(fileName = MORDM_FILE, reportVars=3, eventTime = list(event1))
 

@@ -28,8 +28,10 @@ source("Source/sourceCodeCalibration.R")
 source("Source/utilities.R")
 source("Extrafunctions.R")
 
+alts <- c("Low", "High")
+for (alt in alts){
 ###Calling parameters -- Five best
-alt_bas <- read_delim("Data/XHigh_ord.csv", delim = ";", 
+alt_bas <- read_delim(paste0("Data/X",alt,"_ord.csv"), delim = ";", 
                       escape_double = FALSE, trim_ws = TRUE) %>%
   slice(1:5)
 
@@ -357,12 +359,12 @@ for (shape in 2:2){ # 1: Smooth transition, 2: Sharp Transition; 3: Delayed-Smoo
   data <- borg.optimize(problem, 1000, verbose=T)
   colnames(data[[1]]) <- c("Foreign_Loans", "Foreign _Bonds", "Greenium_Loan", "Greenium_Bonds","Interest Forgiveness", "Stock Forgiveness", varNames[-length(varNames)])
   
-  filename <- paste0("Data/optpol_bastransDShigh",shape,"_robustness_",kk,".RDS")
+  filename <- paste0("Data/optpol_bastransDS",alt,"_",shape,"_robustness_",kk,".RDS")
   
   saveRDS(data, filename)
 }
 
 }
 
-
+}
 
