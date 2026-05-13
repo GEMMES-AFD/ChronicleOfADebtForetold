@@ -119,18 +119,18 @@ for (i in 1:nrow(set_all)) {
 
 # ── 5. Build ribbon data per cluster (min / max / mean) ───────────────────────
 var_labels <- c(
-  perCapita   = "GDP per capita",
-  inflation   = "Inflation rate",
-  reserves    = "Foreign reserves",
-  foreignDebt = "Foreign debt",
-  pubDebt     = "Public debt",
-  fiscalDef   = "Fiscal deficit",
-  hhFrag      = "Household fragility",
-  firmsFrag   = "Firm fragility",
-  unem        = "Unemployment",
-  CAD         = "Current account deficit",
-  Gip         = "Government interest payment",
-  en          = "Nominal exchange rate"
+  perCapita   = "GDP per Capita\n(USD)",
+  inflation   = "Inflation Rate\n(ratio)",
+  reserves    = "Foreign Reserves\n(% GDP, ratio)",
+  foreignDebt = "Foreign Debt\n(% GDP, ratio)",
+  pubDebt     = "Public Debt\n(% GDP, ratio)",
+  fiscalDef   = "Fiscal Deficit\n(% GDP, ratio)",
+  hhFrag      = "Household Fragility\n(ratio)",
+  firmsFrag   = "Firm Fragility\n(ratio)",
+  unem        = "Unemployment\n(ratio)",
+  CAD         = "Current Account Deficit\n(ratio)",
+  Gip         = "Gov. Interest Payment\n(nominal, COP)",
+  en          = "Nominal Exchange Rate\n(COP/USD, model units)"
 )
 
 # Colour palette: first two entries match the paper (teal + orange);
