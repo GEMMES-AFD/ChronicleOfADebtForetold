@@ -35,7 +35,7 @@ source("Extrafunctions.R")
 ###Overarching parameters
 reducXro = 0.025
 shapes = 2
-reaction = 1
+reaction = 0
 
 ##Model Files
 MORDM_FILE = "model_equations_MORDM_Unified.R"
@@ -67,6 +67,7 @@ ROBCAL_FILE <- "MORDM_Process/MORDM_Results/RobcalsShape_DS.RDS"
 ROBLIST_FILE <- "MORDM_Process/MORDM_Results/roblist_DS.RDS"
 REG1_FILE <- "MORDM_PROCESS/MORDM_Results/Regret1_DS.RDS"
 REG2_FILE <- "MORDM_PROCESS/MORDM_Results/Regret2_DS.RDS"
+REG2SD_FILE <- "MORDM_PROCESS/MORDM_Results/Regret2_DSSD.RDS"
 SAT1_FILE <- "MORDM_PROCESS/MORDM_Results/Sat1_DS.RDS"
 SAT2_FILE <- "MORDM_PROCESS/MORDM_Results/Sat2_DS.RDS"
 ROBPOL_FILE <- "MORDM_PROCESS/MORDM_Results/rob_pol_DS.RDS"
@@ -77,6 +78,7 @@ ROBCAL_FILE <- "MORDM_Process/MORDM_Results/RobcalsShape_REAC.RDS"
 ROBLIST_FILE <- "MORDM_Process/MORDM_Results/roblist_REAC.RDS"
 REG1_FILE <- "MORDM_PROCESS/MORDM_Results/Regret1_REAC.RDS"
 REG2_FILE <- "MORDM_PROCESS/MORDM_Results/Regret2_REAC.RDS"
+REG2SD_FILE <- "MORDM_PROCESS/MORDM_Results/Regret2_REACSD.RDS"
 SAT1_FILE <- "MORDM_PROCESS/MORDM_Results/Sat1_REAC.RDS"
 SAT2_FILE <- "MORDM_PROCESS/MORDM_Results/Sat2_REAC.RDS"
 ROBPOL_FILE <- "MORDM_PROCESS/MORDM_Results/rob_pol_REAC.RDS"
@@ -88,6 +90,7 @@ PARALLELVANILLATEST <- T
 ###Regret metric switches
 COMPUTE_REG1 <- F
 COMPUTE_REG2 <- T
+COMPUTE_REG2SD <- F
 COMPUTE_SAT1 <- F
 COMPUTE_SAT2 <- F
 

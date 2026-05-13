@@ -87,6 +87,42 @@ for (shape in shapes){
     rob_pol[2] <- which.min(regret_type2[,"Regret"])
     saveRDS(regret_type2, REG2_FILE)
   }
+  
+  if (COMPUTE_REG2SD){
+    cat("Computing Regret II...\n")
+    start_time <- Sys.time()
+    
+    .reg2_fn <- function(ll) {
+      max(sapply(7:18, function(j){
+        quantile(sapply(1:nrow(roblist2[[ll]]), function(i){
+          best <- min(sapply(1:length(roblist2), function(k) roblist2[[k]][i,j]), na.rm=T)
+          sd_SOW <- sd(sapply(1:length(roblist2), function(k){
+            roblist2[[k]][i,j]
+          }), na.rm = T)
+          (roblist2[[ll]][i,j] - best)/sd_SOW
+        }), 0.9, na.rm=T)
+      }))
+    }
+    
+    if (SHOW_PROGRESS) {
+      with_progress({
+        p <- progressor(steps=length(roblist2))
+        regret_type2 <- future.apply::future_lapply(1:length(roblist2), function(ll){
+          on.exit(p())
+          .reg2_fn(ll)
+        }) %>% list.rbind()
+      })
+    } else {
+      regret_type2 <- future.apply::future_lapply(1:length(roblist2), .reg2_fn) %>% list.rbind()
+    }
+    
+    cat("Regret II elapsed:", format(Sys.time() - start_time), "\n")
+    
+    regret_type2 <- cbind(set, regret_type2)
+    colnames(regret_type2)[ncol(regret_type2)] <- "Regret"
+    rob_pol[2] <- which.min(regret_type2[,"Regret"])
+    saveRDS(regret_type2, REG2SD_FILE)
+  }
 
   if (COMPUTE_SAT1 | COMPUTE_SAT2){
     roblist2_df <- list.rbind(roblist2)

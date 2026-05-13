@@ -18,7 +18,6 @@ source("MORDM_Process/Workflow/01-SOS.R")
 cat("Step 2: Getting optimal policies...\n")
 source("MORDM_Process/Workflow/02-MORDM_optpol.R")
 
-if (reaction == 1){
 cat("Step 3: Generating robustness calibration...\n")
 source("MORDM_Process/Workflow/03-MORDM_Robcal.R")
 
@@ -27,4 +26,3 @@ source("MORDM_Process/Workflow/04-MORDM_RobRes.R")
 
 cat("Step 5: Computing Regret Metrics\n")
 source("MORDM_Process/Workflow/05-MORDM_RobMetrics.R")
-}
