@@ -16,7 +16,7 @@ plain_met <- function(levers, params=NULL){
   parms_NewC['shrGrL']= 1 
   
   ###Setting reaction
-  parms_NewC['reaction']=1
+  parms_NewC['reaction']=reaction
   parms_NewC['zetafx3']=1
   parms_NewC['rho']=0.2
   parms_NewC['gammariskFFX']=0
@@ -143,7 +143,7 @@ my_run <- function(levers){
   parms_NewC['shrGrL']= 1 
   
   ###Setting reaction
-  parms_NewC['reaction']=1
+  parms_NewC['reaction']=reaction
   parms_NewC['zetafx3']=1
   parms_NewC['rho']=0.2
   parms_NewC['gammariskFFX']=0

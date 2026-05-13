@@ -30,7 +30,7 @@ alt_bas <- read_delim("Data/XLow_ord.csv", delim = ";",
 xr0 = 0.025
 event1 <- list(triggerDate=4, reducXrO=xr0)
 SOEM <- cppMakeSys(
-  fileName = "model_equations_MORDM.R",
+  fileName = "model_equations_MORDM_Unified.R",
   reportVars = 3, 
   eventTime = list(event1)
 )
@@ -82,7 +82,6 @@ run_one_kk <- function(kk) {
   # NDC parameters
   parms_worker['lambdatr0']     <- 5
   parms_worker['lambdatr1']     <- 6
-  parms_worker['lambdatr2']     <- 0.011
   parms_worker['lambdatr0_adj'] <- 5
   parms_worker['lambdatr1_adj'] <- 12
   parms_worker['lambdatr2_adj'] <- 1

@@ -51,11 +51,11 @@ for (shape in shapes){ # 1: Smooth transition, 2: Sharp Transition; 3: Delayed-S
   cat("Defining boundaries and problem...\n")
   bounds <- matrix(rep(range(0, 1), nvars), nrow = 2)
   ##Defining borg problem
-  problem <-define.problem(my_run, nobj = nobj, nvars = nvars, nconstrs = nconstrs, bounds = bounds, epsilons = rep(1e-01,nobj), names = c("Foreign_Loans", "Foreign _Bonds", "Greenium_Loan", "Greenium_Bonds","Interest Forgiveness", "Stock Forgiveness" ,c(varNames[-length(varNames)])))
+  problem <-define.problem(my_run, nobj = nobj, nvars = nvars, nconstrs = nconstrs, bounds = bounds, epsilons = rep(1e-01,nobj), names = c("Foreign_Loans", "Foreign_Bonds", "Greenium_Loan", "Greenium_Bonds","Interest_Forgiveness", "Stock_Forgiveness" ,c(varNames[-length(varNames)])))
   ###Optimiising through borg and storing
   cat("Entering Borg optimisation...\n")
   data <- borg.optimize(problem, n_sim, verbose=T)
-  colnames(data[[1]]) <- c("Foreign_Loans", "Foreign _Bonds", "Greenium_Loan", "Greenium_Bonds","Interest Forgiveness", "Stock Forgiveness", varNames[-length(varNames)])
+  colnames(data[[1]]) <- c("Foreign_Loans", "Foreign_Bonds", "Greenium_Loan", "Greenium_Bonds","Interest_Forgiveness", "Stock_Forgiveness", varNames[-length(varNames)])
   cat("Borg optimisation: OK!...\n")
   
   

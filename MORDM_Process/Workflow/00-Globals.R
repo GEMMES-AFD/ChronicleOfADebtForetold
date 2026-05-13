@@ -35,7 +35,7 @@ source("Extrafunctions.R")
 ###Overarching parameters
 reducXro = 0.025
 shapes = 2
-
+reaction = 0
 
 ##Model Files
 MORDM_FILE = "model_equations_MORDM_Unified.R"
@@ -60,7 +60,18 @@ set.seed(42)
 source("MORDM_Process/utils/MORDM_Functions.R")
 
 ###File names
-OPTPOL_FILE <- "MORDM_Process/MORDM_Results/optpol_DS_REAC.RDS"
+if (reaction ==0){
+OPTPOL_FILE <- "MORDM_Process/MORDM_Results/optpol_DS.RDS"
+PARMS_BACKUP <- "MORDM_Process/MORDM_Results/parms_NewC_DS.RDS"
+ROBCAL_FILE <- "MORDM_Process/MORDM_Results/RobcalsShape_DS.RDS"
+ROBLIST_FILE <- "MORDM_Process/MORDM_Results/roblist_DS.RDS"
+REG1_FILE <- "MORDM_PROCESS/MORDM_Results/Regret1_DS.RDS"
+REG2_FILE <- "MORDM_PROCESS/MORDM_Results/Regret2_DS.RDS"
+SAT1_FILE <- "MORDM_PROCESS/MORDM_Results/Sat1_DS.RDS"
+SAT2_FILE <- "MORDM_PROCESS/MORDM_Results/Sat2_DS.RDS"
+ROBPOL_FILE <- "MORDM_PROCESS/MORDM_Results/rob_pol_DS.RDS"
+} else if (reaction ==1) {
+OPTPOL_FILE <- "MORDM_Process/MORDM_Results/optpol_REAC.RDS"
 PARMS_BACKUP <- "MORDM_Process/MORDM_Results/parms_NewC.RDS"
 ROBCAL_FILE <- "MORDM_Process/MORDM_Results/RobcalsShape_REAC.RDS"
 ROBLIST_FILE <- "MORDM_Process/MORDM_Results/roblist_REAC.RDS"
@@ -68,12 +79,11 @@ REG1_FILE <- "MORDM_PROCESS/MORDM_Results/Regret1_REAC.RDS"
 REG2_FILE <- "MORDM_PROCESS/MORDM_Results/Regret2_REAC.RDS"
 SAT1_FILE <- "MORDM_PROCESS/MORDM_Results/Sat1_REAC.RDS"
 SAT2_FILE <- "MORDM_PROCESS/MORDM_Results/Sat2_REAC.RDS"
-ROBPOL_FILE <- "MORDM_PROCESS/MORDM_Results/rob_pol.RDS"
+ROBPOL_FILE <- "MORDM_PROCESS/MORDM_Results/rob_pol_REAC.RDS"
+}
 
 ###Consistency Switch
 PARALLELVANILLATEST <- T
-
-
 
 ###Regret metric switches
 COMPUTE_REG1 <- F

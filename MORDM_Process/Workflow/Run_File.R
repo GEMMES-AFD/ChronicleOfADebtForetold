@@ -1,12 +1,24 @@
 cat("Step 0: Calling Globals...\n")
 source("MORDM_Process/Workflow/00-Globals.R")
 
+if (reaction > 1) {
+  stop("Inconsistent reaction value")
+}
+
+if (reaction == 0){
+  cat("No Market Reaction: Only optimal policies")
+} else if (reaction ==1){
+  cat("Market Reaction: Full Workflow")
+}
+
+
 cat("Step 1: Creating SOS...\n")
 source("MORDM_Process/Workflow/01-SOS.R")
 
 cat("Step 2: Getting optimal policies...\n")
 source("MORDM_Process/Workflow/02-MORDM_optpol.R")
 
+if (reaction == 1){
 cat("Step 3: Generating robustness calibration...\n")
 source("MORDM_Process/Workflow/03-MORDM_Robcal.R")
 
@@ -15,3 +27,4 @@ source("MORDM_Process/Workflow/04-MORDM_RobRes.R")
 
 cat("Step 5: Computing Regret Metrics\n")
 source("MORDM_Process/Workflow/05-MORDM_RobMetrics.R")
+}

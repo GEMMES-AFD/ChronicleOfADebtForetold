@@ -24,9 +24,12 @@ source("Source/SourceCode.R")
 source("Source/sourceCodeCalibration.R")
 source("Source/utilities.R")
 
+# ── Setting seed ─────────────────────────────────────────────────────────────────────
+set.seed(42)
+
 # ── Model system ───────────────────────────────────────────────────────────────
 event1 <- list(triggerDate = 4, reducXrO = "0.025")
-SOEM   <- cppMakeSys(fileName   = "model_equations_MORDM.R",
+SOEM   <- cppMakeSys(fileName   = "model_equations_MORDM_Unified.R",
                      reportVars = 3,
                      eventTime  = list(event1))
 
@@ -49,10 +52,12 @@ parms_base['shrGrL']             <- 1
 parms_base['shrGrLFx']           <- 0.5
 
 # ── 1. Load and consolidate all Borg Pareto sets ───────────────────────────────
-rds_files <- c(
-  paste0("Data/optpol_bastransDS2_robustness_",     1:5, ".RDS"),
-  paste0("Data/optpol_bastransDShigh2_robustness_", 1:5, ".RDS")
-)
+#rds_files <- c(
+#  paste0("Data/optpol_bastransDS2_robustness_",     1:5, ".RDS"),
+#  paste0("Data/optpol_bastransDShigh2_robustness_", 1:5, ".RDS")
+#)
+rds_files <- c("MORDM_Process/MORDM_Results/optpol_DS.RDS")
+
 set_all <- do.call(rbind,
                    lapply(rds_files, function(f) mordm.get.set(readRDS(f))))
 set_all <- as.data.frame(set_all)
@@ -70,8 +75,8 @@ perf_cols  <- 7:18
 
 # ── 2. Cluster on scaled performance indicators ────────────────────────────────
 k.opt <- NbClust(
-  as.matrix(scale(set_all[, perf_cols])),
-  method = "kmeans", min.nc = 2, max.nc = 6
+  as.matrix(scale(set_all[, lever_cols])),
+  method = "kmeans", min.nc = 2, max.nc = 5
 )$Best.partition
 
 set_all$Cluster <- k.opt
@@ -262,5 +267,51 @@ bottom_panel <- ggplot() +
 combined <- plot_grid(top_panel, bottom_panel,
                       nrow = 2, rel_heights = c(2, 5))
 
-ggsave("Images/macrocomparison.png", combined,
+combined
+ggsave("Figures/macrocomparison.png", combined,
        width = 18, height = 20, dpi = 300)
+
+
+
+#####################Regret figure
+REG2_FILE <- "MORDM_Process/MORDM_Results/Regret2_REAC.RDS"
+optpol_reac <- readRDS("MORDM_Process/MORDM_Results/optpol_REAC.RDS")[[1]] %>% as.data.frame()
+
+k.opt <- NbClust(
+  as.matrix(scale(optpol_reac[, lever_cols])),
+  method = "kmeans", min.nc = 2, max.nc = 5
+)$Best.partition
+
+optpol_reac$Cluster <- k.opt
+clusters        <- sort(unique(k.opt))
+n_clusters      <- length(clusters)
+
+
+regret_type2_df <- as.data.frame(regret_type2)
+regret_type2_df <- regret_type2_df %>%
+  mutate(
+    Regret_cat = cut(
+      Regret,
+      breaks = c(0, 2, 5, 8, 15,80),
+      include.lowest = TRUE,
+      right = FALSE,
+      labels = c("0–2", "2–5", "5–8", "8–15", '15+')
+    )
+  ) %>% 
+  arrange(desc(Regret_cat)) 
+
+colnames(regret_type2_df)[2] <- "Foreign_Bonds"
+colnames(regret_type2_df)[5] <- "Interest_Forgiveness"
+colnames(regret_type2_df)[6] <- "Stock_Forgiveness"
+
+ggplot(data = regret_type2_df %>% mutate(cluster = k.opt), aes(y = 100*(Stock_Forgiveness+Interest_Forgiveness)/2, color = 100 * (Foreign_Loans - Foreign_Bonds) / 2, size = Regret_cat, x = 100*(Greenium_Loan + Greenium_Bonds)/2, label=cluster, group = ifelse(is.na(cluster)==1, NA,1)))  + geom_point() + scale_size_manual(values = c("0–2" = 6,"2–5" = 3, "5–8" = 2, "8–15" = 1.5, "15+"= 1  ), name = "Regret (intervalle)", labels = c("0–2", "2–5", "5–8", "8–15", "15+")
+) + xlab("Average Greenium (%)") + ylab("Average Reprofiling (%)") + ggtitle("Regret II") +  scale_color_gradient(
+  name = "Loans - Peso Bonds(%)",
+  low = "brown2",     # clair
+  high = "darkblue"     # foncé
+) + scale_fill_discrete(guide="none")  + theme(plot.title=element_text(size=10), panel.background = element_blank(), axis.title=element_text(size=10), legend.title=element_text(size=10, margin = margin(b = 10)), axis.text = element_text(size=10), legend.text = element_text(size=10)) 
+#+ facet_wrap(~as.factor(cluster), labeller = as_labeller(labelling, default=label_wrap_gen(30))) 
+filename <- paste0("Figures/Reg2_1v4", shape,".png")
+ggsave(filename, dpi = 400, width = 7.5, height = 5)
+
+

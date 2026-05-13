@@ -11,12 +11,14 @@
 
 # ── Libraries ──────────────────────────────────────────────────────────────────
 library(tidyverse)
-
+REG2_FILE <- "MORDM_Process/MORDM_Results/Regret2_REAC.RDS" 
 # ── 1. Load regret data ────────────────────────────────────────────────────────
 # reg2 = cbind(set, Regret): columns 1–6 are levers, 7–18 are performance,
 # last column is Regret (90th-percentile relative degradation, already in % units)
-reg2 <- readRDS("Robustness/reg2_threshresnewGD2.RDS") %>% as.data.frame()
-
+reg2 <- readRDS(REG2_FILE) %>% as.data.frame()
+colnames(reg2)[2] <- "Foreign_Bonds"
+colnames(reg2)[5] <- "Interest_Forgiveness"
+colnames(reg2)[6] <- "Stock_Forgiveness"
 # ── 2. Categorise regret into size bins ────────────────────────────────────────
 max_regret <- ceiling(max(reg2$Regret, na.rm = TRUE))
 
@@ -75,6 +77,7 @@ p_regret2 <- ggplot(
     axis.text        = element_text(size = 10),
     legend.text      = element_text(size = 10)
   )
+p_regret2
 
 # ── 4. Save ────────────────────────────────────────────────────────────────────
-ggsave("Images/regret2.png", p_regret2, dpi = 400, width = 7.5, height = 5)
+ggsave("Figures/regret2.png", p_regret2, dpi = 400, width = 7.5, height = 5)
