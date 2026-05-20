@@ -67,3 +67,4 @@ Data/optpol_bastransDShigh*.RDS
 
 #Open MORDM
 OpenMORDM/*
+CppCodeRK4.cpp

@@ -643,9 +643,11 @@ Rcpp::NumericMatrix RK4(int nt,
 	for (it=0; it<nExogVar; it++) comptExogVar[it]=1;
 	// get intermediateVar and compute distance at t=0 //
 	@AddReportingVarsInit
-		
-		for (it=0; it<(nt-1); it++) {
-			
+	
+	for (it=0; it<nExogVar; it++) comptExogVar[it]=1;
+	
+	for (it=0; it<(nt-1); it++) {
+
 			@AddEventTime
 			@AddEventVar
 			
@@ -665,8 +667,8 @@ Rcpp::NumericMatrix RK4(int nt,
 			
 			for (it1=0; it1<dim; it1++) {
 				ydots[it1] = (ydot0[it1] + 2.0*ydot1[it1] + 2.0*ydot2[it1] + ydot3[it1])/6.0;
+			  out(it+1, it1) = y[it1];
 				y[it1] = y[it1] + byT*ydots[it1];
-				out(it+1, it1) = y[it1];
 			}
 			
 			@AddReportingVars

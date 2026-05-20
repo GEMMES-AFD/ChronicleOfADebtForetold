@@ -8,7 +8,6 @@ library(xtable)
 
 #Load the algorithm
 source("Source/SourceCode.R")
-source("Source/sourceCodeCalibration.R")
 source("Source/utilities.R")
 
 event1 <- list(triggerDate=4, reducXrO="0.025")

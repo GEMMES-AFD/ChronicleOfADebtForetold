@@ -23,7 +23,6 @@ library(tidyverse)
 
 #Load the algorithm
 source("Source/SourceCode.R")
-source("Source/sourceCodeCalibration.R")
 source("Source/utilities.R")
 
 for (shape in 2:2){
