@@ -166,7 +166,7 @@ ggplot(res_df, aes(x = time, y = Value,
   xlab("Year")
 
 
-ggsave("Figures/clean_plot_res18.png", width = 10, height = 5, dpi = 400)
+ggsave("Figures/Figure1.png", width = 10, height = 5, dpi = 400)
 
 
 
