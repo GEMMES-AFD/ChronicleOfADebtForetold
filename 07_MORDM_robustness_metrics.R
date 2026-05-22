@@ -16,7 +16,6 @@ library(readxl)
 library(xtable)
 library(rlist)
 
-library("sensobol")
 library("data.table")
 library("ggplot2")
 

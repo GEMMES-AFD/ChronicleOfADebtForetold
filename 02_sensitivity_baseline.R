@@ -17,7 +17,7 @@
 #   Top 5 alternatives from each set plotted against baseline.
 #
 # Inputs:  sourced from 01_run_scenarios.R
-# Outputs: Data/XHigh_ord.csv, Data/XLow_ord.csv, Images/*.png
+# Outputs: Data/XHigh_ord.csv, Data/XLow_ord.csv, Figures/*.png
 
 library(lhs)
 library(dplyr)
@@ -82,10 +82,14 @@ bas_df <- cppRK4(SOEM1, parms = parms1, eventTime = list(event1)) %>%
   filter(time > 2022.9 & time < 2030) %>%
   mutate(CAD = (X - IM) / GDP, GipGDP = Gip / GDP)
 
-# Full time-series Euclidean distance to baseline
-dist_to_baseline <- function(par_vec_named) {
-  parms_i                    <- baseline
+# Output statistics names: per-variable mean + dist_baseline
+stat_names <- c(paste0(output_names, "_mean"), "dist_baseline")
+
+# Model runner: returns per-variable means + full time-series distance
+run_stats <- function(par_vec_named) {
+  parms_i                       <- baseline
   parms_i[names(par_vec_named)] <- par_vec_named
+  out <- setNames(rep(NA_real_, length(stat_names)), stat_names)
   sim <- tryCatch(
     cppRK4(SOEM1, parms = parms_i, eventTime = list(event1)) %>%
       as.data.frame() %>%
@@ -93,23 +97,30 @@ dist_to_baseline <- function(par_vec_named) {
       mutate(CAD = (X - IM) / GDP, GipGDP = Gip / GDP),
     error = function(e) NULL
   )
-  if (is.null(sim) || nrow(sim) != nrow(bas_df)) return(NA_real_)
+  if (is.null(sim) || nrow(sim) != nrow(bas_df)) return(out)
+  for (v in output_names)
+    out[paste0(v, "_mean")] <- mean(sim[[v]], na.rm = TRUE)
   eps <- 1e-5; dist_sq <- 0
   for (v in output_names)
     dist_sq <- dist_sq +
       sum(((sim[[v]] - bas_df[[v]]) / (abs(bas_df[[v]]) + eps))^2, na.rm = TRUE)
-  sqrt(dist_sq)
+  out["dist_baseline"] <- sqrt(dist_sq)
+  out
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# STEP 1 — OT sensitivity on dist_baseline (K independent LHS samples)
+# STEP 1 — Multi-criteria OT sensitivity (K independent LHS samples)
+#   Criteria: dist_baseline + univariate OT per output + multivariate OT
+#   Selection: parameters consistently influential across ≥ 2 criteria
 # ═══════════════════════════════════════════════════════════════════════════════
 
 K      <- 5
 n_runs <- 5000
 
-res_ot     <- vector("list", K)
-valid_pcts <- numeric(K)
+# criteria: dist_baseline + all outputs (univariate) + "multi"
+criteria    <- c("dist_baseline", output_names, "multi")
+res_all     <- vector("list", K)   # res_all[[k]][[criterion]] = named OT index vector
+valid_pcts  <- numeric(K)
 
 for (k in seq_len(K)) {
   cat(sprintf("\n── LHS sample %d / %d ──\n", k, K))
@@ -121,52 +132,102 @@ for (k in seq_len(K)) {
   colnames(X) <- param_names
   for (cp in constantParms) X[, cp] <- baseline[cp]
 
-  y <- vapply(seq_len(n_runs), function(i) {
+  Y <- matrix(NA_real_, nrow = n_runs, ncol = length(stat_names))
+  colnames(Y) <- stat_names
+  for (i in seq_len(n_runs)) {
     par_i        <- X[i, ]
     names(par_i) <- param_names
-    dist_to_baseline(par_i)
-  }, numeric(1))
+    Y[i, ]       <- run_stats(par_i)
+  }
 
-  valid <- is.finite(y)
+  valid <- is.finite(Y[, "dist_baseline"])
   valid_pcts[k] <- 100 * mean(valid)
   cat(sprintf("  Valid: %d / %d (%.1f%%)\n", sum(valid), n_runs, valid_pcts[k]))
 
   x_df <- as.data.frame(X[valid, , drop = FALSE])
   colnames(x_df) <- make.unique(colnames(x_df))
   x_df <- x_df[, apply(x_df, 2, var) > 0, drop = FALSE]
+  Y_clean <- Y[valid, , drop = FALSE]
 
-  res_k        <- ot_indices_1d(x = x_df, y = y[valid], M = 20)
-  res_ot[[k]]  <- res_k$indices
-  plot(res_k, ranking = 20, main = paste0("OT dist_baseline — sample ", k))
+  res_k <- list()
+
+  # OT on dist_baseline
+  res_dist         <- ot_indices_1d(x = x_df, y = Y_clean[, "dist_baseline"], M = 20)
+  res_k[["dist_baseline"]] <- res_dist$indices
+  plot(res_dist, ranking = 20, main = paste0("OT dist_baseline — s", k))
+
+  # OT univariate per output
+  for (v in output_names) {
+    y_v       <- Y_clean[, paste0(v, "_mean")]
+    if (var(y_v, na.rm = TRUE) == 0) next
+    res_v     <- ot_indices_1d(x = x_df, y = y_v, M = 20)
+    res_k[[v]] <- res_v$indices
+  }
+
+  # OT multivariate (all outputs jointly)
+  y_mat       <- Y_clean[, paste0(output_names, "_mean"), drop = FALSE]
+  res_multi   <- ot_indices(x = x_df, y = y_mat, M = 20)
+  res_k[["multi"]] <- res_multi$indices
+  plot(res_multi, ranking = 20, main = paste0("OT multivariate — s", k))
+
+  res_all[[k]] <- res_k
 }
 
-# Rank stability across K samples
-common_params <- Reduce(intersect, lapply(res_ot, names))
+# ── Rank stability and multi-criteria aggregation ─────────────────────────────
+# For each criterion, compute rank of each parameter across K samples.
+# A parameter is "stiff" if it ranks in the top 30 across ≥ 2 criteria.
 
-rank_mat <- do.call(cbind, lapply(res_ot, function(idx)
-  rank(-idx[common_params], ties.method = "average")))
-rownames(rank_mat) <- common_params
-colnames(rank_mat) <- paste0("s", seq_len(K))
+common_params <- Reduce(intersect,
+  lapply(res_all, function(rk) Reduce(intersect, lapply(rk, names))))
 
-stability_df <- data.frame(
-  param     = common_params,
-  rank_mean = rowMeans(rank_mat),
-  rank_sd   = apply(rank_mat, 1, sd)
-) %>% arrange(rank_mean)
+# For each criterion: mean rank and sd across K samples
+crit_stability <- lapply(criteria, function(cr) {
+  rmat <- do.call(cbind, lapply(res_all, function(rk) {
+    idx <- rk[[cr]]
+    if (is.null(idx)) return(rep(NA_real_, length(common_params)))
+    rank(-idx[common_params], ties.method = "average")
+  }))
+  rownames(rmat) <- common_params
+  data.frame(
+    param     = common_params,
+    criterion = cr,
+    rank_mean = rowMeans(rmat, na.rm = TRUE),
+    rank_sd   = apply(rmat, 1, sd, na.rm = TRUE)
+  )
+})
+crit_df <- bind_rows(crit_stability)
 
-cat("\n══ Top 40 parameters (mean rank, rank 1 = most influential) ══\n")
-print(head(stability_df, 40), row.names = FALSE)
+# Count in how many criteria each parameter ranks in the top 30
+top30_counts <- crit_df %>%
+  group_by(param) %>%
+  summarise(
+    n_top30    = sum(rank_mean <= 30, na.rm = TRUE),
+    rank_dist  = rank_mean[criterion == "dist_baseline"],
+    rank_multi = rank_mean[criterion == "multi"],
+    rank_sd_dist = rank_sd[criterion == "dist_baseline"],
+    .groups = "drop"
+  ) %>%
+  arrange(desc(n_top30), rank_dist)
 
-# ── SET AFTER REVIEWING STEP 1 PLOTS ─────────────────────────────────────────
-# Examine the K OT plots above and the stability table.
-# Parameters with low mean rank AND low rank_sd are robustly stiff.
-# Adjust the lists below if needed before proceeding to Steps 2–3.
+cat("\n══ Multi-criteria summary (top 50) ══\n")
+cat("n_top30 = number of criteria (out of", length(criteria),
+    ") for which mean rank ≤ 30\n\n")
+print(as.data.frame(head(top30_counts, 50)), row.names = FALSE)
 
-top_30_stiff  <- stability_df$param[1:30]   # most influential on dist_baseline
-top_30_sloppy <- tail(stability_df$param, 30) # least influential
+# ── SET AFTER REVIEWING ───────────────────────────────────────────────────────
+# Stiff candidates: n_top30 ≥ 2  (consistent across multiple criteria)
+# Sloppy candidates: n_top30 = 0 AND rank_dist high
+# Adjust manually if domain knowledge justifies it.
 
-cat("\n── Stiff (top 30) ──\n");  dput(top_30_stiff)
-cat("\n── Sloppy (bottom 30) ──\n"); dput(top_30_sloppy)
+top_30_stiff  <- top30_counts$param[top30_counts$n_top30 >= 2][1:30]
+top_30_sloppy <- top30_counts %>%
+  filter(n_top30 == 0) %>%
+  arrange(desc(rank_dist)) %>%
+  pull(param) %>%
+  head(30)
+
+cat("\n── Stiff (n_top30 ≥ 2, top 30) ──\n");  dput(top_30_stiff)
+cat("\n── Sloppy (n_top30 = 0, bottom 30 on dist) ──\n"); dput(top_30_sloppy)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STEP 2 — Focused LHS (n = 20 000) on stiff and sloppy separately
@@ -186,11 +247,12 @@ run_focused_lhs <- function(params_sel, n = 20000, seed = 1) {
   X <- sweep(X, 2, lo,        `+`)
   colnames(X) <- params_sel
 
-  y <- vapply(seq_len(n), function(i) {
+  y <- numeric(n)
+  for (i in seq_len(n)) {
     par_i        <- X[i, ]
     names(par_i) <- params_sel
-    dist_to_baseline(par_i)
-  }, numeric(1))
+    y[i]         <- run_stats(par_i)["dist_baseline"]
+  }
 
   list(X = X, y = y)
 }
@@ -279,11 +341,11 @@ plot_replication <- function(res_df, title) {
 cat("\n── Step 3a: Replication figure — stiff alternatives ──\n")
 df_high <- make_replication_df(X_high_ord, "Stiff_")
 print(plot_replication(df_high, "Baseline replication — stiff parameter alternatives"))
-ggsave("Images/clean_plot_alternativeHigh.png", width = 10, height = 5, dpi = 400)
+ggsave("Figures/clean_plot_alternativeHigh.png", width = 10, height = 5, dpi = 400)
 
 cat("── Step 3b: Replication figure — sloppy alternatives ──\n")
 df_low <- make_replication_df(X_low_ord, "Sloppy_")
 print(plot_replication(df_low, "Baseline replication — sloppy parameter alternatives"))
-ggsave("Images/clean_plot_alternativeLow.png", width = 10, height = 5, dpi = 400)
+ggsave("Figures/clean_plot_alternativeLow.png", width = 10, height = 5, dpi = 400)
 
 cat("\nDone. XHigh_ord.csv and XLow_ord.csv are ready for scripts 04 and 05.\n")

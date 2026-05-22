@@ -7,7 +7,6 @@ options(warn = -1)
 library(readxl)
 library(xtable)
 library(rlist)
-library("sensobol")
 library("data.table")
 library("ggplot2")
 library(Rcpp)
@@ -68,7 +67,6 @@ run_one_kk <- function(kk) {
   # (mclapply forks the process so these are already available,
   #  but we re-source to be safe in case of copy-on-write issues)
   source("Source/SourceCode.R",         local = TRUE)
-  source("Source/sourceCodeCalibration.R", local = TRUE)
   source("Source/utilities.R",          local = TRUE)
   source("Extrafunctions.R",            local = TRUE)
   
