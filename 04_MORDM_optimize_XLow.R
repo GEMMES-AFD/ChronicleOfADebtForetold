@@ -20,15 +20,14 @@ source("Source/utilities.R")
 source("Extrafunctions.R")
 
 ###Calling parameters -- Five best
-alt_bas <- read_delim("Data/XLow_ord.csv", delim = ";", 
-                      escape_double = FALSE, trim_ws = TRUE) %>%
+alt_bas <- read.table("Data/XLow_ord.csv", sep = ";", dec = ",", header = TRUE) %>%
   slice(1:5)
 
 ###Generating System
 xr0 = 0.025
 event1 <- list(triggerDate=4, reducXrO=xr0)
 SOEM <- cppMakeSys(
-  fileName = "model_equations_MORDM_Unified.R",
+  fileName = "model_equations_MORDM.R",
   reportVars = 3, 
   eventTime = list(event1)
 )
@@ -56,9 +55,7 @@ threshold[12,2:4] <- c(0, 0.04, 1)
 threshold <- threshold %>%
   mutate(center = ifelse(direction == 0, 0.5*(L_Bound+H_Bound), 0))
 
-# ── Detect cores ──────────────────────────────────────────────────────────────
-n_cores <- min(nrow(alt_bas), detectCores() - 1)
-cat("Running on", n_cores, "cores\n")
+cat("Running", nrow(alt_bas), "alternatives sequentially\n")
 
 # ── Worker function for one kk ────────────────────────────────────────────────
 run_one_kk <- function(kk) {
@@ -212,12 +209,7 @@ run_one_kk <- function(kk) {
   return(invisible(kk))
 }
 
-# ── Launch parallel runs over kk ──────────────────────────────────────────────
-results <- mclapply(
-  1:nrow(alt_bas),
-  run_one_kk,
-  mc.cores    = n_cores,
-  mc.set.seed = TRUE  
-)
+# ── Run sequentially (mclapply fork not supported on Windows) ─────────────────
+results <- lapply(1:nrow(alt_bas), run_one_kk)
 
 cat("All runs complete.\n")

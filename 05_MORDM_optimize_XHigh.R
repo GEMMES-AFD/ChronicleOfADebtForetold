@@ -29,8 +29,7 @@ source("Extrafunctions.R")
 alts <- c("Low", "High")
 for (alt in alts){
 ###Calling parameters -- Five best
-alt_bas <- read_delim(paste0("Data/X",alt,"_ord.csv"), delim = ";", 
-                      escape_double = FALSE, trim_ws = TRUE) %>%
+alt_bas <- read.table(paste0("Data/X",alt,"_ord.csv"), sep = ";", dec = ",", header = TRUE) %>%
   slice(1:5)
 
 

@@ -115,7 +115,7 @@ run_stats <- function(par_vec_named) {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 K      <- 5
-n_runs <- 5000
+n_runs <- 20000
 
 # criteria: dist_baseline + all outputs (univariate) + "multi"
 criteria    <- c("dist_baseline", output_names, "multi")
@@ -217,7 +217,7 @@ print(as.data.frame(head(top30_counts, 50)), row.names = FALSE)
 # ── SET AFTER REVIEWING ───────────────────────────────────────────────────────
 # Stiff candidates: n_top30 ≥ 2  (consistent across multiple criteria)
 # Sloppy candidates: n_top30 = 0 AND rank_dist high
-# Adjust manually if domain knowledge justifies it.
+
 
 top_30_stiff  <- head(top30_counts$param[top30_counts$n_top30 >= 2], 30)
 top_30_sloppy <- top30_counts %>%
