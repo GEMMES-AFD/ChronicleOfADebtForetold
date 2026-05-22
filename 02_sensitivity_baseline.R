@@ -219,12 +219,15 @@ print(as.data.frame(head(top30_counts, 50)), row.names = FALSE)
 # Sloppy candidates: n_top30 = 0 AND rank_dist high
 # Adjust manually if domain knowledge justifies it.
 
-top_30_stiff  <- top30_counts$param[top30_counts$n_top30 >= 2][1:30]
+top_30_stiff  <- head(top30_counts$param[top30_counts$n_top30 >= 2], 30)
 top_30_sloppy <- top30_counts %>%
   filter(n_top30 == 0) %>%
   arrange(desc(rank_dist)) %>%
   pull(param) %>%
   head(30)
+
+cat(sprintf("\nStiff candidates found: %d\n", length(top_30_stiff)))
+cat(sprintf("Sloppy candidates found: %d\n", length(top_30_sloppy)))
 
 cat("\n── Stiff (n_top30 ≥ 2, top 30) ──\n");  dput(top_30_stiff)
 cat("\n── Sloppy (n_top30 = 0, bottom 30 on dist) ──\n"); dput(top_30_sloppy)
