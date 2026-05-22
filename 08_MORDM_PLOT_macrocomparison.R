@@ -28,7 +28,7 @@ set.seed(42)
 
 # ── Model system ───────────────────────────────────────────────────────────────
 event1 <- list(triggerDate = 4, reducXrO = "0.025")
-SOEM   <- cppMakeSys(fileName   = "model_equations_MORDM_Unified.R",
+SOEM   <- cppMakeSys(fileName   = "model_equations_MORDM.R",
                      reportVars = 3,
                      eventTime  = list(event1))
 

@@ -44,8 +44,10 @@ account deficit, government interest payments, nominal exchange rate.
 │                                         #   Step 2 — focused LHS → Data/XHigh_ord.csv, XLow_ord.csv
 │                                         #   Step 3 — appendix replication figures
 │
-├── 04_MORDM_optimize_XLow.R              # Borg MOEA optimization — XLow baseline set
-├── 05_MORDM_optimize_XHigh.R             # Borg MOEA optimization — XLow and XHigh baseline sets
+├── 04_MORDM_optimize_XLow.R              # Borg MOEA on sloppy alternative calibrations (XLow)
+│                                         #   → sensitivity of Pareto front to sloppy parameters
+├── 05_MORDM_optimize_XHigh.R             # Borg MOEA on stiff alternative calibrations (XHigh)
+│                                         #   → sensitivity of Pareto front to stiff parameters
 ├── 06_MORDM_robustness_calibration.R     # LHS sampling for deep-uncertainty robustness evaluation
 ├── 07_MORDM_robustness_metrics.R         # Regret + satisficing robustness metrics; cluster analysis
 │
@@ -63,8 +65,8 @@ account deficit, government interest payments, nominal exchange rate.
 │
 ├── Data/
 │   ├── XLow_ord.csv                      # Alternative calibrations (sloppy params varied), sorted by
-│   │                                     # distance to baseline; input for scripts 04/05
-│   ├── XHigh_ord.csv                     # Alternative calibrations (stiff params varied)
+│   │                                     # distance to baseline; input for script 04
+│   ├── XHigh_ord.csv                     # Alternative calibrations (stiff params varied); input for 05
 │   ├── parms.csv                         # Baseline parameter values
 │   ├── parms1.csv                        # Calibration parameter set
 │   └── res_indices.csv                   # Variable index reference
@@ -73,24 +75,29 @@ account deficit, government interest payments, nominal exchange rate.
 │   ├── Figure1.png                       # Scenario comparison (output of 01)
 │   └── clean_plot_res18.png              # Baseline time series (output of 01)
 │
-├── MORDM_Process/MORDM_Results/          # Pre-computed Borg optimization results
-│                                         # (used by scripts 08 and 09 pending pipeline alignment;
-│                                         #  see note below)
+├── MORDM_Process/MORDM_Results/          # Authoritative pre-computed Borg optimization results
+│   ├── optpol_DS.RDS                     #   Main Pareto-optimal policy set (debt swap strategies)
+│   ├── optpol_REAC.RDS                   #   Reactive policy set (produced by MORDM_Process workflow)
+│   └── Regret2_REAC.RDS                 #   Regret II robustness metrics for the reactive policies
+│                                         # Scripts 08 and 09 read from this directory.
+│                                         # The workflow scripts in MORDM_Process/Workflow/ that
+│                                         # produced these results are archived there for reference.
 │
 └── Robustness/                           # Generated RDS outputs from scripts 06–07 (gitignored)
 ```
 
-> **Note on MORDM_Process:** Scripts 08 and 09 currently read pre-computed Borg results from
-> `MORDM_Process/MORDM_Results/` as an interim solution. Once the full numbered pipeline (scripts
-> 04–07) has been validated and aligned, these paths will be updated to read from `Data/` and
-> `Robustness/` respectively. The workflow scripts in `MORDM_Process/Workflow/` are archived only.
+> **Two distinct MORDM tracks.** Scripts 04–07 test the *sensitivity of the Pareto front* to
+> parametric uncertainty (sloppy/stiff parameter subspaces from script 02). They are not the
+> source of the main paper figures. The authoritative Pareto-optimal strategies and robustness
+> results used in all main figures are pre-computed in `MORDM_Process/MORDM_Results/` and were
+> produced by the workflow archived in `MORDM_Process/Workflow/`. Scripts 08 and 09 read
+> exclusively from `MORDM_Process/MORDM_Results/`.
 
 ---
 
 ## Pipeline
 
-Scripts are numbered in execution order. Steps 4–5 are computationally intensive and
-can be run in parallel (they operate on independent baseline sets).
+### Track A — Model scenarios and parametric sensitivity (fully replicable)
 
 ```
 01_run_scenarios.R
@@ -101,31 +108,42 @@ can be run in parallel (they operate on independent baseline sets).
 02_sensitivity_baseline.R
     └─ sources: 01_run_scenarios.R
     └─ step 1 outputs: console + OT index plots (K=5 samples)
-    └─ step 2 outputs: Data/XHigh_ord.csv
-                       Data/XLow_ord.csv
+    └─ step 2 outputs: Data/XHigh_ord.csv   (stiff alternative calibrations)
+                       Data/XLow_ord.csv    (sloppy alternative calibrations)
     └─ step 3 outputs: Figures/clean_plot_alternativeHigh.png
                        Figures/clean_plot_alternativeLow.png
+```
 
+### Track B — Pareto-front sensitivity to parametric uncertainty (requires Borg license)
+
+These scripts test whether the Pareto front structure is robust across the sloppy and stiff
+parameter subspaces identified in script 02. They are not the source of the main paper figures.
+
+```
 04_MORDM_optimize_XLow.R              ┐  independent,
 05_MORDM_optimize_XHigh.R             ┘  can run in parallel
     └─ sources: model_equations_MORDM.R
-    └─ inputs:  Data/XLow_ord.csv / Data/XHigh_ord.csv
+    └─ inputs:  Data/XLow_ord.csv (script 04) / Data/XHigh_ord.csv (script 05)
     └─ outputs: Data/optpol_bastransDSLow_{shape}_robustness_{kk}.RDS
                 Data/optpol_bastransDSHigh_{shape}_robustness_{kk}.RDS
                 (gitignored; large intermediate files)
 
 06_MORDM_robustness_calibration.R
-    └─ inputs:  Data/optpol_bastransnew2{shape}.RDS (consolidated from step 4/5)
+    └─ inputs:  Data/ consolidated RDS from scripts 04/05
     └─ outputs: Robustness/RobcalsShape_no_new2{shape}.RDS
 
 07_MORDM_robustness_metrics.R
-    └─ inputs:  Robustness/RobcalsShape_no_new2{shape}.RDS
-                Data/optpol_bastransnew2{shape}.RDS
-    └─ outputs: Robustness/reg1_threshresnewGD2.RDS
-                Robustness/reg2_threshresnewGD2.RDS
-                Robustness/sat1_threshresnewGD2.RDS
-                Robustness/sat2_threshresnewGD2.RDS
+    └─ inputs:  Robustness/RobcalsShape_no_new2{shape}.RDS + Data/ consolidated RDS
+    └─ outputs: Robustness/reg1_threshresnewGD2.RDS  ...  sat2_threshresnewGD2.RDS
+```
 
+### Track C — Main MORDM figures (pre-computed; requires Borg license to re-run)
+
+The authoritative optimization results are archived in `MORDM_Process/MORDM_Results/`.
+The workflow that produced them is archived in `MORDM_Process/Workflow/`. Scripts 08 and 09
+read from `MORDM_Process/MORDM_Results/` and do not depend on scripts 04–07.
+
+```
 08_MORDM_PLOT_macrocomparison.R
     └─ inputs:  MORDM_Process/MORDM_Results/optpol_DS.RDS
                 MORDM_Process/MORDM_Results/optpol_REAC.RDS
@@ -158,9 +176,15 @@ install.packages(c(
 
 ### OpenMORDM and Borg MOEA
 
-Scripts 04–07 require **OpenMORDM** and the **Borg MOEA** C library. OpenMORDM is
-an R package wrapping the Borg multi-objective evolutionary algorithm and providing
-MORDM utilities. It is not on CRAN; installation instructions are available at:
+> **Replication note:** Scripts 04–09 require the **Borg MOEA** library, which is distributed
+> under a license that prohibits redistribution. The compiled Borg library is therefore not
+> included in this repository. A free license can be obtained directly from the authors at
+> http://borgmoea.org. Without it, Tracks B and C cannot be re-run from scratch; however,
+> the pre-computed results in `MORDM_Process/MORDM_Results/` allow scripts 08 and 09 (the
+> figure-generation scripts) to run without a Borg license.
+
+Scripts 04–07 additionally require **OpenMORDM**, an R package wrapping the Borg MOEA and
+providing MORDM utilities. It is not on CRAN; installation instructions are available at:
 
 - Borg MOEA: http://borgmoea.org
 - OpenMORDM: https://github.com/dhadka/OpenMORDM
