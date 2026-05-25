@@ -19,9 +19,16 @@ source("Source/SourceCode.R")
 source("Source/utilities.R")
 source("Extrafunctions.R")
 
+alts <- c("Low","High")
+for (alt in alts){
 ###Calling parameters -- Five best
-alt_bas <- read.table("Data/XLow_ord.csv", sep = ";", dec = ",", header = TRUE) %>%
-  slice(1:5)
+  if (alt == "Low"){
+alt_bas <-  read.table(paste0("Data/X",alt,"_ord.csv"), sep = ";", dec = ",", header = TRUE) %>%
+  slice(1:5)}
+  else {
+    alt_bas <-  read.table(paste0("Data/X",alt,"_ord.csv"), sep = ";", dec = ",", header = TRUE) %>%
+      slice(3:7)} ###NB: First and second calibrations resulted in an infeasibility with NDC investment, shifting to 3:7
+  
 
 ###Generating System
 xr0 = 0.025
@@ -196,12 +203,12 @@ run_one_kk <- function(kk) {
                    varNames[-length(varNames)])
     )
     
-    data <- borg.optimize(problem, 10000, verbose=TRUE)
+    data <- borg.optimize(problem, 1000, verbose=TRUE)
     colnames(data[[1]]) <- c("Foreign_Loans", "Foreign_Bonds", "Greenium_Loan",
                              "Greenium_Bonds", "Interest_Forgiveness",
                              "Stock_Forgiveness", varNames[-length(varNames)])
     
-    filename <- paste0("Data/optpol_bastransDS", shape, "_robustness_", kk, ".RDS")
+    filename <- paste0("Data/optpol_bastransDS",alt, shape, "_robustness_", kk, ".RDS")
     saveRDS(data, filename)
     cat("Saved:", filename, "\n")
   }
@@ -212,4 +219,5 @@ run_one_kk <- function(kk) {
 # ── Run sequentially (mclapply fork not supported on Windows) ─────────────────
 results <- lapply(1:nrow(alt_bas), run_one_kk)
 
-cat("All runs complete.\n")
+cat("All runs complete: ", alt, "\n")
+}

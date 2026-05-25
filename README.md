@@ -44,15 +44,14 @@ account deficit, government interest payments, nominal exchange rate.
 │                                         #   Step 2 — focused LHS → Data/XHigh_ord.csv, XLow_ord.csv
 │                                         #   Step 3 — appendix replication figures
 │
-├── 04_MORDM_optimize_XLow.R              # Borg MOEA on sloppy alternative calibrations (XLow)
-│                                         #   → sensitivity of Pareto front to sloppy parameters
-├── 05_MORDM_optimize_XHigh.R             # Borg MOEA on stiff alternative calibrations (XHigh)
-│                                         #   → sensitivity of Pareto front to stiff parameters
-├── 06_MORDM_robustness_calibration.R     # LHS sampling for deep-uncertainty robustness evaluation
-├── 07_MORDM_robustness_metrics.R         # Regret + satisficing robustness metrics; cluster analysis
+├── 04_MORDM_optimize_Sensititivy.R              # Borg MOEA on alternative calibrations (Sloppy (XLow), Stiff (XHigh)
+│                                         #   → sensitivity of Pareto front to sloppy and stiff parameters
+├── 05_MORDM_robustness_calibration.R     # LHS sampling for deep-uncertainty robustness evaluation
+├── 06_MORDM_robustness_metrics.R         # Regret + satisficing robustness metrics; cluster analysis
 │
-├── 08_MORDM_PLOT_macrocomparison.R       # Macrocomparison figure (lever boxplots + ribbon trajectories)
-├── 09_MORDM_regret_viz.R                 # Regret II scatter plot
+├── 07_MORDM_PLOT_macrocomparison.R       # Macrocomparison figures (lever boxplots + ribbon trajectories)
+├── 08_MORDM_regret_viz.R                 # Regret II scatter plot
+├── 09_Mgraph_SensitivityPareto.R         # Comparison plots for sensitivity on Pareto fronts
 │
 ├── Extrafunctions.R                      # ggplot parallel coordinates and visualization helpers
 │
@@ -75,6 +74,10 @@ account deficit, government interest payments, nominal exchange rate.
 │   ├── Figure1.png                       # Scenario comparison (output of 01)
 │   └── clean_plot_res18.png              # Baseline time series (output of 01)
 │
+├── Tab;es/ 
+│   ├── LatexTable_Low.tex                # Distance metrics with respect to reference -- Sloppy
+│   ├── LatexTable_High.tex                # Distance metrics with respect to reference -- Sloppy
+
 ├── MORDM_Process/MORDM_Results/          # Authoritative pre-computed Borg optimization results
 │   ├── optpol_DS.RDS                     #   Main Pareto-optimal policy set (debt swap strategies)
 │   ├── optpol_REAC.RDS                   #   Reactive policy set (produced by MORDM_Process workflow)
@@ -176,12 +179,12 @@ install.packages(c(
 
 ### OpenMORDM and Borg MOEA
 
-> **Replication note:** Scripts 04–09 require the **Borg MOEA** library, which is distributed
-> under a license that prohibits redistribution. The compiled Borg library is therefore not
-> included in this repository. A free license can be obtained directly from the authors at
-> http://borgmoea.org. Without it, Tracks B and C cannot be re-run from scratch; however,
-> the pre-computed results in `MORDM_Process/MORDM_Results/` allow scripts 08 and 09 (the
-> figure-generation scripts) to run without a Borg license.
+> **Replication note:** Scripts 04–09  as well as the MORDM workdlow in MORDM_Process require 
+> the **Borg MOEA** library, which is distributed under a license that prohibits redistribution. 
+> The compiled Borg library is therefore not  included in this repository. A free license can 
+> be obtained directly from the authors at http://borgmoea.org. Without it, Tracks B and C cannot 
+> be re-run from scratch; however, the pre-computed results in `MORDM_Process/MORDM_Results/` 
+> allow scripts 08 and 09 (the figure-generation scripts) to run without a Borg license.
 
 Scripts 04–07 additionally require **OpenMORDM**, an R package wrapping the Borg MOEA and
 providing MORDM utilities. It is not on CRAN; installation instructions are available at:
