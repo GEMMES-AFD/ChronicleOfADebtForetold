@@ -106,7 +106,7 @@ if (kk >0){
 saveRDS(set, paste0("Set",altSOws, ".RDS"))
 
 ####Distance table
-name_column <- c("IGD - Policies", "Hausman - Policy", "IGD - Outcome", "Hausman - Policies")
+name_column <- c("IGD - Policies", "Hausdorff - Policy", "IGD - Outcome", "Hausdorff - Policies")
 distance_matrix <- rbind(round(dist_igd_pol,2), 
                          round(dist_haus_pol,2),
                                round(dist_igd_out,2),
@@ -142,7 +142,7 @@ sens_labels <- c(
 
 
 
-plot_title <- paste0("Illustrative arbitrage across four dimensions")
+plot_title <- paste0("Illustrative arbitrage\nacross four dimensions")
 
 big_set$sens <- factor(big_set$sens, 
                    levels = c(0, 1, 2, 3, 4, 5), 
@@ -226,7 +226,60 @@ plot
 
 ggsave(paste0("Figures/ComparativePFront2.png"), dpi = 400, width = 7.5, height = 5)
 
+plot_title <- paste0("Illustrative arbitrage across\nfour dimensions (Sloppy)")
+plot <- ggplot(data = big_set %>% filter(Params == "Sloppy" | Params == "Reference"), 
+               aes(x = fiscalDef     , 
+                   y = hhFrag  , 
+                   fill = unem           , 
+                   size = Gip,
+                   shape = Params         )) +
+  geom_point() +
+  facet_wrap(~as.factor(sens), labeller = as_labeller(sens_labels)) +
+  scale_fill_viridis("Cost on\nGov.Int.Pay", begin = 0.5, option = "turbo") +
+  scale_shape_manual(values=c(24, 22, 21)) +
+  scale_size("Cost on\nGov.Int.Pay") +
+  xlab("Cost on Fiscal Deficit") +
+  ylab("Cost on Household Deficit") +
+  ggtitle(plot_title) +
+  theme(
+    axis.text.x = element_text(hjust = 1, size = 15),
+    axis.text.y = element_text(hjust = 1, size = 15),
+    axis.title = element_text(size = 20),
+    plot.title = element_text(size = 25),
+    legend.text = element_text(size = 15),
+    legend.title = element_text(size = 20)
+  )
+plot
 
+ggsave(paste0("Figures/ComparativePFront_Sloppy.png"), dpi = 400, width = 7.5, height = 5)
+
+
+plot_title <- paste0("Illustrative arbitrage across\nfour dimensions (Stiff)")
+plot <- ggplot(data = big_set %>% filter(Params == "Stiff" | Params == "Reference"), 
+               aes(x = fiscalDef     , 
+                   y = hhFrag  , 
+                   fill = unem           , 
+                   size = Gip,
+                   shape = Params         )) +
+  geom_point() +
+  facet_wrap(~as.factor(sens), labeller = as_labeller(sens_labels)) +
+  scale_fill_viridis("Cost on\nGov.Int.Pay", begin = 0.5, option = "turbo") +
+  scale_shape_manual(values=c(24, 22, 21)) +
+  scale_size("Cost on\nGov.Int.Pay") +
+  xlab("Cost on Fiscal Deficit") +
+  ylab("Cost on Household Deficit") +
+  ggtitle(plot_title) +
+  theme(
+    axis.text.x = element_text(hjust = 1, size = 15),
+    axis.text.y = element_text(hjust = 1, size = 15),
+    axis.title = element_text(size = 20),
+    plot.title = element_text(size = 25),
+    legend.text = element_text(size = 15),
+    legend.title = element_text(size = 20)
+  )
+plot
+
+ggsave(paste0("Figures/ComparativePFront_Stiff.png"), dpi = 400, width = 7.5, height = 5)
 
 
 
