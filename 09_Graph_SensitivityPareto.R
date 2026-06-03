@@ -34,7 +34,6 @@ library(paletteer)
 #Load the algorithm
 source("Source/SourceCode.R")
 source("Source/utilities.R")
-source("Extrafunctions.R")
 library(corrplot)
 library(factoextra)
 library(FactoMineR)

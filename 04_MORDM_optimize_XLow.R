@@ -72,7 +72,6 @@ run_one_kk <- function(kk) {
   #  but we re-source to be safe in case of copy-on-write issues)
   source("Source/SourceCode.R",         local = TRUE)
   source("Source/utilities.R",          local = TRUE)
-  source("Extrafunctions.R",            local = TRUE)
   
   parms_worker <- SOEM$parms  # local copy — avoids race conditions
   
