@@ -1,6 +1,7 @@
 # Chronicle of a Debt Foretold
 
 Replication code for the paper **"Chronicle of a Debt Foretold"**.
+DOI : https://doi.org/10.5281/zenodo.20930659
 
 This repository contains the model, analysis pipeline, and robustness analysis for GEMMES Colombia,
 a Stock-Flow Consistent (SFC) macro-financial model of the Colombian economy, used to assess green
